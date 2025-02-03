@@ -1,0 +1,100 @@
+#root {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+ 
+.logo.react:hover {
+  filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+@keyframes logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  a:nth-of-type(2) .logo {
+    animation: logo-spin infinite 20s linear;
+  }
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+
+.buttons {
+  isolation: isolate;
+  color: #F5F5EB;
+  font-size: 16px;
+  line-height: 1.5;
+  font-weight: 600;
+  border-radius: 9999rem;
+  background: var(--secondary-colors);
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px 35px;
+  overflow: hidden;
+  transition: 200ms ease-out;
+}
+
+.buttons>.backdrop {
+  z-index: 1;
+  transition: 150ms ease-out;
+}
+
+.buttons>.overlay {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: inherit;
+  background: var(--primary-colors);
+  color: var(--secondary-colors);
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  transform: translateY(calc(100% + 1px));
+  transition: 200ms ease-out;
+}
+
+.buttons:hover,
+.buttons:focus {
+  background: rgba(227, 219, 13, 0.6);
+  /* color-mix equivalent */
+  transition: 250ms ease-out;
+}
+
+.buttons:hover>.backdrop,
+.buttons:focus>.backdrop {
+  transform: scale(0.8);
+  opacity: 0.5;
+}
+
+.buttons:hover>.overlay,
+.buttons:focus>.overlay {
+  transform: translateY(0);
+}
+
+.price {
+  font-family: Inter, -apple-system, Helvetica, Arial, sans-serif;
+}
+
+.selectBorder {
+  padding: 10px 0px;
+  border-top: 1px solid #9bd0c2;
+}
