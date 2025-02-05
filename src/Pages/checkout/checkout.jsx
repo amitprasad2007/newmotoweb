@@ -109,8 +109,10 @@ export default function checkout () {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
-      if (response.status !== 200) {
-        console.error('Failed to update cart data', response);
+      if (response.status === 200) {
+        setProducts(response.data.product);
+      } else {
+        console.error('Failed to send cart data', response);
       }
     } catch (error) {
       console.error('Error updating cart data', error);
