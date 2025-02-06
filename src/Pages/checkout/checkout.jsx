@@ -19,7 +19,8 @@ export default function checkout () {
     cvc: '',
     billingAddress: '',
     billingState: '',
-    billingZip: ''
+    billingZip: '',
+    mobile: ''
   });
   let isSubmitting = false;
 
@@ -82,7 +83,7 @@ export default function checkout () {
         const newQuantity = (product.cartquantity || 0) + change;
         // Ensure quantity is updated correctly
         return product.id === productId ? { ...product, cartquantity: Math.max(newQuantity, 0) } : product;
-      }).filter(product => product.cartquantity > 0);
+      });
 
       updateCartAPI(updatedProducts);
 
@@ -118,6 +119,14 @@ export default function checkout () {
       console.error('Error updating cart data', error);
     }
   };
+
+  const calculateSubtotal = () => {
+    return products.reduce((total, product) => {
+      return total + (product.price * (product.cartquantity || 1));
+    }, 0);
+  };
+
+  const shippingCost = 8.00; // Define the shipping cost
 
   return (
     <div className='bg-white text-left checkout'>
@@ -204,28 +213,37 @@ export default function checkout () {
             Check your items. And select a suitable shipping method.
           </p>
           <div className='space-y-3 bg-white mt-8 px-2 sm:px-6 py-4 border rounded-lg'>
-            {products.map((product) => (
-              <div key={product.id} className='flex sm:flex-row flex-col bg-white rounded-lg'>
-                <img
-                  className='m-2 border rounded-md w-28 h-24 object-center object-cover'
-                  src={
-                    product.photoproduct?.[0]?.photo_path ||
-                    '/placeholder-image.jpg'
-                  }
-                  alt={product.title || 'Product'}
-                />
-                <div className='flex flex-col px-4 py-4 w-full'>
-                  <span className='font-semibold'>{product.title}</span>
-                  <span className='float-right text-gray-400'>{product.brand}</span>
-                  <p className='font-bold text-lg'>₹{product.price}</p>
-                  <div className='flex items-center mt-2'>
-                    <button onClick={() => handleQuantityChange(product.id, -1)}>-</button>
-                    <input type='number' value={product.cartquantity || 1} readOnly className='mx-2 w-12 text-center' />
-                    <button onClick={() => handleQuantityChange(product.id, 1)}>+</button>
+            {products.length > 0 ? (
+              products.map((product) => (
+                <div key={product.id} className='flex sm:flex-row flex-col bg-white rounded-lg'>
+                  <img
+                    className='m-2 border rounded-md w-28 h-24 object-center object-cover'
+                    src={
+                      product.photoproduct?.[0]?.photo_path ||
+                      '/placeholder-image.jpg'
+                    }
+                    alt={product.title || 'Product'}
+                  />
+                  <div className='flex flex-col px-4 py-4 w-full'>
+                    <span className='font-semibold'>{product.title}</span>
+                    <span className='float-right text-gray-400'>{product.brand}</span>
+                    <p className='font-bold text-lg'>₹{product.price}</p>
+                    <div className='flex items-center mt-2'>
+                      <button onClick={() => handleQuantityChange(product.id, -1)}>-</button>
+                      <input type='number' value={product.cartquantity || 1} readOnly className='mx-2 w-12 text-center' />
+                      <button onClick={() => handleQuantityChange(product.id, 1)}>+</button>
+                    </div>
                   </div>
                 </div>
+              ))
+            ) : (
+              <div className='text-center py-4'>
+                <p className='text-gray-500'>Your cart is empty. Start adding items!</p>
+                <a href="/" className='text-blue-500 hover:underline mt-2 inline-block'>
+                  Continue Shopping
+                </a>
               </div>
-            ))}
+            )}
           </div>
         </div>
         <div className='bg-gray-50 mt-10 lg:mt-0 px-4 pt-8'>
@@ -265,10 +283,43 @@ export default function checkout () {
               </div>
             </div>
             <label
+              htmlFor='mobile'
+              className='block mt-4 mb-2 font-medium text-sm'
+            >
+              Mobile
+            </label>
+            <div className='relative'>
+              <input
+                type='text'
+                id='mobile'
+                name='mobile'
+                value={formData.mobile}
+                onChange={handleInputChange}
+                className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 pl-11 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
+                placeholder='Your mobile number'
+              />
+              <div className='inline-flex left-0 absolute inset-y-0 items-center px-3 pointer-events-none'>
+                <svg
+                  xmlns='http://www.w3.org/2000/svg'
+                  className='w-4 h-4 text-gray-400'
+                  fill='none'
+                  viewBox='0 0 24 24'
+                  stroke='currentColor'
+                  strokeWidth='2'
+                >
+                  <path
+                    strokeLinecap='round'
+                    strokeLinejoin='round'
+                    d='M7 2h10a2 2 0 012 2v16a2 2 0 01-2 2H7a2 2 0 01-2-2V4a2 2 0 012-2zm5 18a1 1 0 100-2 1 1 0 000 2z'
+                  />
+                </svg>
+              </div>
+            </div>
+            <label
               htmlFor='card-holder'
               className='block mt-4 mb-2 font-medium text-sm'
             >
-              Card Holder
+              Full name (First and Last name)
             </label>
             <div className='relative'>
               <input
@@ -297,51 +348,7 @@ export default function checkout () {
                 </svg>
               </div>
             </div>
-            <label htmlFor='card-no' className='block mt-4 mb-2 font-medium text-sm'>
-              Card Details
-            </label>
-            <div className='flex'>
-              <div className='relative flex-shrink-0 w-7/12'>
-                <input
-                  type='text'
-                  id='card-no'
-                  name='card-no'
-                  value={formData.cardNumber}
-                  onChange={handleInputChange}
-                  className='focus:z-10 border-gray-200 shadow-sm px-2 py-3 pl-11 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
-                  placeholder='xxxx-xxxx-xxxx-xxxx'
-                />
-                <div className='inline-flex left-0 absolute inset-y-0 items-center px-3 pointer-events-none'>
-                  <svg
-                    className='w-4 h-4 text-gray-400'
-                    xmlns='http://www.w3.org/2000/svg'
-                    width='16'
-                    height='16'
-                    fill='currentColor'
-                    viewBox='0 0 16 16'
-                  >
-                    <path d='M11 5.5a.5.5 0 0 1 .5-.5h2a.5.5 0 0 1 .5.5v1a.5.5 0 0 1-.5.5h-2a.5.5 0 0 1-.5-.5v-1z' />
-                    <path d='M2 2a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H2zm13 2v5H1V4a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1zm-1 9H2a1 1 0 0 1-1-1v-1h14v1a1 1 0 0 1-1 1z' />
-                  </svg>
-                </div>
-              </div>
-              <input
-                type='text'
-                name='credit-expiry'
-                value={formData.expiry}
-                onChange={handleInputChange}
-                className='focus:z-10 border-gray-200 shadow-sm px-2 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
-                placeholder='MM/YY'
-              />
-              <input
-                type='text'
-                name='credit-cvc'
-                value={formData.cvc}
-                onChange={handleInputChange}
-                className='focus:z-10 flex-shrink-0 border-gray-200 shadow-sm px-2 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-1/6 text-sm outline-none'
-                placeholder='CVC'
-              />
-            </div>
+           
             <label
               htmlFor='billing-address'
               className='block mt-4 mb-2 font-medium text-sm'
@@ -389,7 +396,7 @@ export default function checkout () {
             <div className='mt-6 py-2 border-t border-b'>
               <div className='flex justify-between items-center'>
                 <p className='font-medium text-gray-900 text-sm'>Subtotal</p>
-                <p className='font-semibold text-gray-900'>₹399.00</p>
+                <p className='font-semibold text-gray-900'>₹{calculateSubtotal().toFixed(2)}</p>
               </div>
               <div className='flex justify-between items-center'>
                 <p className='font-medium text-gray-900 text-sm'>Shipping</p>
@@ -398,7 +405,7 @@ export default function checkout () {
             </div>
             <div className='flex justify-between items-center mt-6'>
               <p className='font-medium text-gray-900 text-sm'>Total</p>
-              <p className='font-semibold text-2xl text-gray-900'>₹408.00</p>
+              <p className='font-semibold text-2xl text-gray-900'>₹{(calculateSubtotal() + shippingCost).toFixed(2)}</p>
             </div>
             <button type='submit' className='bg-gray-900 mt-4 mb-8 px-6 py-3 rounded-md w-full font-medium text-white'>
               Place Order

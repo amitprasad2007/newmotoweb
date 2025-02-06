@@ -76,8 +76,18 @@ export default function Header() {
       const shouldFixHeader = !isHomePage || window.scrollY > 350;
       setIsFixed(shouldFixHeader);
     };
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
+
+    // Add scroll event listener only if not on the checkout page
+    const isCheckoutPage = window.location.pathname === "/checkout";
+    if (!isCheckoutPage) {
+      window.addEventListener("scroll", handleScroll);
+    }
+
+    return () => {
+      if (!isCheckoutPage) {
+        window.removeEventListener("scroll", handleScroll);
+      }
+    };
   }, []);
 
   const handleLogout = () => {
@@ -259,7 +269,7 @@ export default function Header() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="size-6"
+                  className="size-6 cursor-pointer"
                 >
                   <path
                     strokeLinecap="round"
@@ -278,7 +288,7 @@ export default function Header() {
                   viewBox="0 0 24 24"
                   strokeWidth={1.5}
                   stroke="currentColor"
-                  className="size-6"
+                  className="size-6 cursor-pointer"
                   onClick={handleCartClick}
                 >
                   <path
