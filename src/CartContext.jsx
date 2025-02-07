@@ -39,7 +39,9 @@ export const CartProvider = ({ children }) => {
       if (existingProduct) {
         // Increase the quantity by the specified amount
         return prevCart.map(item =>
-          item.slug === normalizedSlug ? { ...item, quantity: item.quantity + quantity } : item
+          item.slug === normalizedSlug 
+            ? { ...item, quantity: Math.max(0, item.quantity + quantity) } 
+            : item
         );
       } else {
         // Add the product with the specified quantity
@@ -54,7 +56,11 @@ export const CartProvider = ({ children }) => {
 
   const clearCart = () => {
     setCart([]); // Clear the cart state
-    localStorage.removeItem(`cart_${userId}`); // Remove the cart from localStorage
+    Object.keys(localStorage).forEach((key) => {
+      if (key.startsWith('cart_')) {
+        localStorage.removeItem(key);
+      }
+    });
   };
 
   return (

@@ -170,7 +170,10 @@ export default function Project_Details() {
                                         <li className="flex p-2 w-1/2">
                                             <form className="w-full">
                                                 <button 
-                                                    onClick={handleBuyNow}
+                                                    onClick={() => {
+                                                        addToCart(product.product[0].slug, value);
+                                                        handleBuyNow();
+                                                    }}
                                                     className="bg-green-500 hover:bg-green-600 shadow px-4 py-2 rounded w-full font-semibold text-white transition duration-300" 
                                                     type="button">
                                                     Buy Now
@@ -291,7 +294,10 @@ export default function Project_Details() {
                         <li className="flex p-2 w-1/2">
                             <form className="w-full">
                                 <button 
-                                    onClick={handleBuyNow}
+                                    onClick={() => {
+                                        addToCart(product.product[0].slug, value);
+                                        handleBuyNow();
+                                    }}
                                     className="bg-green-500 hover:bg-green-600 shadow px-4 py-2 rounded w-full font-semibold text-white transition duration-300" 
                                     type="button">
                                     Buy Now

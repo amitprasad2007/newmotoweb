@@ -73,7 +73,8 @@ export default function Header() {
   useEffect(() => {
     const handleScroll = () => {
       const isHomePage = window.location.pathname === "/";
-      const shouldFixHeader = !isHomePage || window.scrollY > 350;
+      const isCheckoutPage = window.location.pathname === "/checkout"; // Add this line
+      const shouldFixHeader =  !isCheckoutPage && window.scrollY > 350; // Update this line
       setIsFixed(shouldFixHeader);
     };
 
@@ -94,6 +95,7 @@ export default function Header() {
 
   const handleLogout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("cart");
     localStorage.removeItem("userId");
     clearCart();
     setUserStatus(null);
