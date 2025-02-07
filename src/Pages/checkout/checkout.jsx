@@ -8,7 +8,7 @@ import { CartContext } from "../../CartContext.jsx";
 export default function checkout () {
   const { userStatus, loading } = useContext(UserContext);
   const [products, setProducts] = useState([]);
-  const { cart } = useContext(CartContext);
+  const { cart,addToCart } = useContext(CartContext);
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -41,7 +41,7 @@ export default function checkout () {
 
       const cartData = {
         userId,
-        cart: cart.map(item => ({ ...item, quantity: item.quantity })),
+        cart: cart.filter(item => item.quantity > 0).map(item => ({ ...item, quantity: item.quantity })),
       };
       try {
         const response = await axios.post(`${apiUrl}/api/savecart`, cartData, {
@@ -77,18 +77,16 @@ export default function checkout () {
     }
   };
 
-  const handleQuantityChange = async (productId, change) => {
+  const handleQuantityChange = async (productSlug, change) => {
     setProducts((prevProducts) => {
       const updatedProducts = prevProducts.map((product) => {
         const newQuantity = (product.cartquantity || 0) + change;
-        // Ensure quantity is updated correctly
-        return product.id === productId ? { ...product, cartquantity: Math.max(newQuantity, 0) } : product;
+        return product.slug === productSlug ? { ...product, cartquantity: Math.max(newQuantity, 0) } : product;
       });
-
-      updateCartAPI(updatedProducts);
-
+      updateCartAPI(updatedProducts);     
       return updatedProducts;
     });
+    addToCart(productSlug,change);
   };
 
   const updateCartAPI = async (updatedProducts) => {
@@ -102,7 +100,7 @@ export default function checkout () {
 
     const cartData = {
       userId,
-      cart: updatedProducts.map(item => ({ ...item, cartquantity: item.cartquantity })), // Ensure quantity is included
+      cart: updatedProducts.map(item => ({ ...item, cartquantity: item.cartquantity })), 
     };
 
     try {
@@ -229,9 +227,9 @@ export default function checkout () {
                     <span className='float-right text-gray-400'>{product.brand}</span>
                     <p className='font-bold text-lg'>₹{product.price}</p>
                     <div className='flex items-center mt-2'>
-                      <button onClick={() => handleQuantityChange(product.id, -1)}>-</button>
+                      <button onClick={() => handleQuantityChange(product.slug, -1)}>-</button>
                       <input type='number' value={product.cartquantity || 1} readOnly className='mx-2 w-12 text-center' />
-                      <button onClick={() => handleQuantityChange(product.id, 1)}>+</button>
+                      <button onClick={() => handleQuantityChange(product.slug, 1)}>+</button>
                     </div>
                   </div>
                 </div>

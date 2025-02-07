@@ -90,12 +90,14 @@ export default function Header() {
     };
   }, []);
 
+  const { getTotalItems, clearCart } = useContext(CartContext);
+
   const handleLogout = () => {
     localStorage.removeItem("authToken");
+    localStorage.removeItem("userId");
+    clearCart();
     setUserStatus(null);
   };
-
-  const { getTotalItems } = useContext(CartContext);
 
   const handleCartClick = () => {
     if (userStatus) {
