@@ -4,24 +4,29 @@ import './checkout.css'
 import axios from 'axios';
 import { UserContext } from "../../UserContext.jsx";
 import { CartContext } from "../../CartContext.jsx";
+import { useOrder } from '../../OrderContext.jsx';
 
 export default function checkout () {
   const { userStatus, loading } = useContext(UserContext);
   const [products, setProducts] = useState([]);
-  const { cart,addToCart } = useContext(CartContext);
+  const { cart,addToCart,clearCart } = useContext(CartContext);
+  const { placeOrder } = useOrder();
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
-    cardHolder: '',
-    cardNumber: '',
-    expiry: '',
-    cvc: '',
+    customername: '',    
     billingAddress: '',
-    billingState: '',
-    billingZip: '',
+    billingstate: '',
+    billingzip: '',
     mobile: ''
   });
+  const [emailError, setEmailError] = useState('');
+  const [mobileError, setMobileError] = useState('');
+  const [customerNameError, setCustomerNameError] = useState('');
+  const [billingAddressError, setBillingAddressError] = useState('');
+  const [billingStateError, setBillingStateError] = useState('');
+  const [billingZipError, setBillingZipError] = useState('');
   let isSubmitting = false;
 
   useEffect(() => {
@@ -61,17 +66,83 @@ export default function checkout () {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+
+    if (name === 'email') {
+      const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
+      if (!emailPattern.test(value)) {
+        setEmailError('Please enter a valid email address.');
+      } else {
+        setEmailError('');
+      }
+    }
+
+    if (name === 'mobile') {
+      const mobilePattern = /^[0-9]{10}$/; // Assuming a 10-digit mobile number
+      if (!mobilePattern.test(value)) {
+        setMobileError('Please enter a valid 10-digit mobile number.');
+      } else {
+        setMobileError('');
+      }
+    }
+
+    if (name === 'customername') {
+      if (value.trim() === '') {
+        setCustomerNameError('Customer name cannot be empty.');
+      } else {
+        setCustomerNameError('');
+      }
+    }
+
+    if (name === 'billingAddress') {
+      if (value.trim() === '') {
+        setBillingAddressError('Billing address cannot be empty.');
+      } else {
+        setBillingAddressError('');
+      }
+    }
+
+    if (name === 'billingstate') {
+      if (value.trim() === '') {
+        setBillingStateError('Billing state cannot be empty.');
+      } else {
+        setBillingStateError('');
+      }
+    }
+
+    if (name === 'billingzip') {
+      const zipPattern = /^[0-9]{6}$/; // Assuming a 6-digit zip code
+      if (!zipPattern.test(value)) {
+        setBillingZipError('Please enter a valid 6-digit ZIP code.');
+      } else {
+        setBillingZipError('');
+      }
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
     isSubmitting = true;
-    console.log('Form submitted');
-    try {    
-      navigate('/success');
+    const orderData = {
+      customerDetails: formData,
+      products: cart.map(item => ({
+        slug: item.slug,
+        quantity: item.quantity,
+        price: item.price
+      })),
+      totalPrice: calculateSubtotal() + shippingCost,
+      shippingPrice: shippingCost
+    };
+
+    try {
+      const orderResponse = await placeOrder(orderData);
+      if (orderResponse) {
+        clearCart();
+        localStorage.removeItem("cart");
+        navigate('/success');
+      }
     } catch (error) {
-      console.error('Payment failed', error);
+      console.error('Order submission failed', error);
     } finally {
       isSubmitting = false;
     }
@@ -208,7 +279,7 @@ export default function checkout () {
         <div className='px-4 pt-8'>
           <p className='font-medium text-xl'>Order Summary</p>
           <p className='text-gray-400'>
-            Check your items. And select a suitable shipping method.
+            Check your items.
           </p>
           <div className='space-y-3 bg-white mt-8 px-2 sm:px-6 py-4 border rounded-lg'>
             {products.length > 0 ? (
@@ -245,9 +316,9 @@ export default function checkout () {
           </div>
         </div>
         <div className='bg-gray-50 mt-10 lg:mt-0 px-4 pt-8'>
-          <p className='font-medium text-xl'>Payment Details</p>
+          <p className='font-medium text-xl'>Customer Details</p>
           <p className='text-gray-400'>
-            Complete your order by providing your payment details.
+            Complete your order by providing your Shipping details.
           </p>
           <form onSubmit={handleSubmit}>
             <label htmlFor='email' className='block mt-4 mb-2 font-medium text-sm'>
@@ -262,6 +333,7 @@ export default function checkout () {
                 onChange={handleInputChange}
                 className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 pl-11 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
                 placeholder='your.email@gmail.com'
+                required
               />
               <div className='inline-flex left-0 absolute inset-y-0 items-center px-3 pointer-events-none'>
                 <svg
@@ -280,6 +352,8 @@ export default function checkout () {
                 </svg>
               </div>
             </div>
+            {emailError && <p className='text-red-500 text-sm mt-1'>{emailError}</p>}
+
             <label
               htmlFor='mobile'
               className='block mt-4 mb-2 font-medium text-sm'
@@ -313,8 +387,10 @@ export default function checkout () {
                 </svg>
               </div>
             </div>
+            {mobileError && <p className='text-red-500 text-sm mt-1'>{mobileError}</p>}
+
             <label
-              htmlFor='card-holder'
+              htmlFor='Customer Name'
               className='block mt-4 mb-2 font-medium text-sm'
             >
               Full name (First and Last name)
@@ -322,9 +398,9 @@ export default function checkout () {
             <div className='relative'>
               <input
                 type='text'
-                id='card-holder'
-                name='card-holder'
-                value={formData.cardHolder}
+                id='customername'
+                name='customername'
+                value={formData.customername}
                 onChange={handleInputChange}
                 className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 pl-11 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm uppercase outline-none'
                 placeholder='Your full name here'
@@ -346,7 +422,8 @@ export default function checkout () {
                 </svg>
               </div>
             </div>
-           
+            {customerNameError && <p className='text-red-500 text-sm mt-1'>{customerNameError}</p>}
+
             <label
               htmlFor='billing-address'
               className='block mt-4 mb-2 font-medium text-sm'
@@ -357,8 +434,8 @@ export default function checkout () {
               <div className='relative flex-shrink-0 sm:w-7/12'>
                 <input
                   type='text'
-                  id='billing-address'
-                  name='billing-address'
+                  id='billingAddress'
+                  name='billingAddress'
                   value={formData.billingAddress}
                   onChange={handleInputChange}
                   className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 pl-11 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
@@ -372,24 +449,28 @@ export default function checkout () {
                   />
                 </div>
               </div>
-              <select
-                type='text'
-                name='billing-state'
-                value={formData.billingState}
-                onChange={handleInputChange}
-                className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
-              >
-                <option value='State'>State</option>
-              </select>
               <input
                 type='text'
-                name='billing-zip'
-                value={formData.billingZip}
+                name='billingstate'
+                id='billingstate'
+                value={formData.billingstate}
+                onChange={handleInputChange}
+                className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
+                placeholder='State Name'
+             / >               
+              <input
+                type='text'
+                name='billingzip'
+                id='billingzip'
+                value={formData.billingzip}
                 onChange={handleInputChange}
                 className='focus:z-10 flex-shrink-0 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 sm:w-1/6 text-sm outline-none'
                 placeholder='ZIP'
               />
             </div>
+            {billingAddressError && <p className='text-red-500 text-sm mt-1'>{billingAddressError}</p>}
+            {billingStateError && <p className='text-red-500 text-sm mt-1'>{billingStateError}</p>}
+            {billingZipError && <p className='text-red-500 text-sm mt-1'>{billingZipError}</p>}
 
             <div className='mt-6 py-2 border-t border-b'>
               <div className='flex justify-between items-center'>
