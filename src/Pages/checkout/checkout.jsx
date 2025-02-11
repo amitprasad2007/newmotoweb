@@ -27,6 +27,7 @@ export default function checkout () {
   const [billingAddressError, setBillingAddressError] = useState('');
   const [billingStateError, setBillingStateError] = useState('');
   const [billingZipError, setBillingZipError] = useState('');
+  const [allfieldsvalue, setAllFieldsValue] = useState('');
   let isSubmitting = false;
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function checkout () {
         setEmailError('Please enter a valid email address.');
       } else {
         setEmailError('');
+        setAllFieldsValue('');
       }
     }
 
@@ -82,6 +84,7 @@ export default function checkout () {
         setMobileError('Please enter a valid 10-digit mobile number.');
       } else {
         setMobileError('');
+        setAllFieldsValue('');
       }
     }
 
@@ -90,6 +93,7 @@ export default function checkout () {
         setCustomerNameError('Customer name cannot be empty.');
       } else {
         setCustomerNameError('');
+        setAllFieldsValue('');
       }
     }
 
@@ -98,6 +102,7 @@ export default function checkout () {
         setBillingAddressError('Billing address cannot be empty.');
       } else {
         setBillingAddressError('');
+        setAllFieldsValue('');
       }
     }
 
@@ -106,6 +111,7 @@ export default function checkout () {
         setBillingStateError('Billing state cannot be empty.');
       } else {
         setBillingStateError('');
+        setAllFieldsValue('');
       }
     }
 
@@ -115,6 +121,7 @@ export default function checkout () {
         setBillingZipError('Please enter a valid 6-digit ZIP code.');
       } else {
         setBillingZipError('');
+        setAllFieldsValue('');
       }
     }
   };
@@ -122,7 +129,22 @@ export default function checkout () {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (isSubmitting) return;
+
+    // Check for empty fields
+    const isFormIncomplete = Object.values(formData).some(value => value.trim() === '');
+    if (isFormIncomplete) {
+      setAllFieldsValue('All fields must be filled out.');
+      return;
+    }
+
+    // Check for validation errors
+    if (emailError || mobileError || customerNameError || billingAddressError || billingStateError || billingZipError) {
+      console.warn('Form contains errors. Please fix them before submitting.');
+      return;
+    }
+
     isSubmitting = true;
+
     const orderData = {
       customerDetails: formData,
       products: cart.map(item => ({
@@ -321,6 +343,7 @@ export default function checkout () {
             Complete your order by providing your Shipping details.
           </p>
           <form onSubmit={handleSubmit}>
+          {allfieldsvalue && <p className='text-red-500 text-sm mt-1'>{allfieldsvalue}</p>}
             <label htmlFor='email' className='block mt-4 mb-2 font-medium text-sm'>
               Email
             </label>

@@ -7,7 +7,7 @@ export const OrderProvider = ({ children }) => {
   const [orderStatus, setOrderStatus] = useState(null);
 
   const placeOrder = async (orderData) => {
-    console.log('Placing order:', orderData); // Debugging log
+   // console.log('Placing order:', orderData); // Debugging log
     const apiUrl = import.meta.env.VITE_API_URL;
     const authToken = localStorage.getItem('authToken');
 

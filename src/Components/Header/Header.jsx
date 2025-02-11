@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useContext } from "react";
 import "./Header.css";
 import icon from "../../assets/Categories Icon/tools.png";
-import { Routes, Route, Link } from "react-router-dom";
+import { Routes, Route, Link, useLocation } from "react-router-dom";
 import logo from "../../assets/Img/Logo.jpg";
 import Login from "../../Pages/Login/Login";
 import { useNavigate } from "react-router-dom";
@@ -108,6 +108,9 @@ export default function Header() {
       setOTPModal(true);
     }
   };
+
+  const location = useLocation();
+  const isCheckoutPage = location.pathname === "/checkout";
 
   return (
     <>
@@ -392,62 +395,66 @@ export default function Header() {
           </div>
         </div>
       </header>
-      <ul className={` bg-white headerMenu ${isFixed ? "CategoryFixed" : ""}`}>
-        {categories.map((category) => (
-          <li className="dropdown" key={category.id}>
-            {category.title}
-            <div className="dropdown-menu">
-      {category.sub_categories.map((subCategory) => (
-        <div
-          className="dropdown-item relative group"
-          key={subCategory.id}
-          onMouseEnter={() => setHoveredSubCategory(subCategory)}
-          onMouseLeave={() => setHoveredSubCategory(null)}
-        >
-          {/* Subcategory Link */}
-          <a
-            href={subCategory.link}
-            className="sub-category-link text-gray-800 hover:text-blue-600"
-          >
-            {subCategory.title}
-          </a>
 
-          {/* Sub-Subcategories Dropdown */}
-          {hoveredSubCategory === subCategory && (
-            <div className="dropdown-item absolute left-full bg-white shadow-lg rounded-md w-auto z-50 nested-dropdown max-h-48 overflow-y-auto h-auto">
-              <div className="p-4">
-                {subCategory.sub_sub_categories &&
-                subCategory.sub_sub_categories.length > 0 ? (
-                  <ul className="space-y-1">
-                    {subCategory.sub_sub_categories.map((subSubCategory) => (
-                      <li
-                        key={subSubCategory.id}
-                        className="text-gray-700 hover:text-blue-600 transition-colors"
-                      >
-                        <a
-                          href={subSubCategory.link}
-                          className="block px-2 py-1 rounded hover:bg-gray-100 whitespace-nowrap"
-                          style={{ textDecoration: 'none', border: 'none' }}
-                        >
-                          {subSubCategory.title}
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-sm text-gray-500">
-                    No subcategories available.
-                  </p>
-                )}
+      {!isCheckoutPage && (
+        <ul className={` bg-white headerMenu ${isFixed ? "CategoryFixed" : ""}`}>
+          {categories.map((category) => (
+            <li className="dropdown" key={category.id}>
+              {category.title}
+              <div className="dropdown-menu">
+                {category.sub_categories.map((subCategory) => (
+                  <div
+                    className="dropdown-item relative group"
+                    key={subCategory.id}
+                    onMouseEnter={() => setHoveredSubCategory(subCategory)}
+                    onMouseLeave={() => setHoveredSubCategory(null)}
+                  >
+                    {/* Subcategory Link */}
+                    <a
+                      href={subCategory.link}
+                      className="sub-category-link text-gray-800 hover:text-blue-600"
+                    >
+                      {subCategory.title}
+                    </a>
+
+                    {/* Sub-Subcategories Dropdown */}
+                    {hoveredSubCategory === subCategory && (
+                      <div className="dropdown-item absolute left-full bg-white shadow-lg rounded-md w-auto z-50 nested-dropdown max-h-48 overflow-y-auto h-auto">
+                        <div className="p-4">
+                          {subCategory.sub_sub_categories &&
+                          subCategory.sub_sub_categories.length > 0 ? (
+                            <ul className="space-y-1">
+                              {subCategory.sub_sub_categories.map((subSubCategory) => (
+                                <li
+                                  key={subSubCategory.id}
+                                  className="text-gray-700 hover:text-blue-600 transition-colors"
+                                >
+                                  <a
+                                    href={subSubCategory.link}
+                                    className="block px-2 py-1 rounded hover:bg-gray-100 whitespace-nowrap"
+                                    style={{ textDecoration: 'none', border: 'none' }}
+                                  >
+                                    {subSubCategory.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          ) : (
+                            <p className="text-sm text-gray-500">
+                              No subcategories available.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
-            </div>
-          )}
-        </div>
-      ))}
-    </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      )}
+      
       {OTPModal && <Login onClick={() => setOTPModal((prev) => !prev)} />}
     </>
   );
