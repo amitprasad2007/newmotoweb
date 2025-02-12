@@ -5,12 +5,14 @@ import axios from 'axios';
 import { UserContext } from "../../UserContext.jsx";
 import { CartContext } from "../../CartContext.jsx";
 import { useOrder } from '../../OrderContext.jsx';
+import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
 
 export default function checkout () {
   const { userStatus, loading } = useContext(UserContext);
   const [products, setProducts] = useState([]);
   const { cart,addToCart,clearCart } = useContext(CartContext);
   const { placeOrder } = useOrder();
+  const { error, isLoading, Razorpay } = useRazorpay();
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -28,6 +30,7 @@ export default function checkout () {
   const [billingStateError, setBillingStateError] = useState('');
   const [billingZipError, setBillingZipError] = useState('');
   const [allfieldsvalue, setAllFieldsValue] = useState('');
+  const [states, setStates] = useState([]);
   let isSubmitting = false;
 
   useEffect(() => {
@@ -39,6 +42,23 @@ export default function checkout () {
       }
     }
   }, [loading, userStatus, navigate]);
+
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const response = await axios.get('https://restcountries.com/v3.1/name/india');
+        const states = response.data[0].subdivisions.map(sub => ({
+          id: sub.iso3166_2,
+          name: sub.name
+        }));
+        setStates(states);
+      } catch (error) {
+        console.error('Failed to fetch states', error);
+      }
+    };
+
+    fetchStates();
+  }, []);
 
   const sendCartData = async () => {
     if (cart.length > 0) {
@@ -150,7 +170,8 @@ export default function checkout () {
       products: cart.map(item => ({
         slug: item.slug,
         quantity: item.quantity,
-        price: item.price
+        price: item.price,
+        cart_id : item.cart_id
       })),
       totalPrice: calculateSubtotal() + shippingCost,
       shippingPrice: shippingCost
@@ -218,6 +239,33 @@ export default function checkout () {
   };
 
   const shippingCost = 8.00; // Define the shipping cost
+
+  const handlePayment = () => {
+    const options = {
+      key: "YOUR_RAZORPAY_KEY",
+      amount: 50000, // Amount in paise
+      currency: "INR",
+      name: "Test Company",
+      description: "Test Transaction",
+      order_id: "order_9A33XWu170gUtm", // Generate order_id on server
+      handler: (response) => {
+        console.log(response);
+        alert("Payment Successful!");
+      },
+      prefill: {
+        name: "John Doe",
+        email: "john.doe@example.com",
+        contact: "9999999999",
+      },
+      theme: {
+        color: "#F37254",
+      },
+    };
+
+    const razorpayInstance = new Razorpay(options);
+    razorpayInstance.open();
+  };
+
 
   return (
     <div className='bg-white text-left checkout'>
@@ -472,15 +520,18 @@ export default function checkout () {
                   />
                 </div>
               </div>
-              <input
-                type='text'
+              <select
                 name='billingstate'
                 id='billingstate'
                 value={formData.billingstate}
                 onChange={handleInputChange}
                 className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
-                placeholder='State Name'
-             / >               
+              >
+                <option value="">Select State</option>
+                {states.map((state) => (
+                  <option key={state.id} value={state.name}>{state.name}</option>
+                ))}
+              </select>
               <input
                 type='text'
                 name='billingzip'
@@ -512,6 +563,14 @@ export default function checkout () {
             <button type='submit' className='bg-gray-900 mt-4 mb-8 px-6 py-3 rounded-md w-full font-medium text-white'>
               Place Order
             </button>
+            <div>
+      <h1>Payment Page</h1>
+      {isLoading && <p>Loading Razorpay...</p>}
+      {error && <p>Error loading Razorpay: {error}</p>}
+      <button onClick={handlePayment} disabled={isLoading}>
+        Pay Now
+      </button>
+    </div>
           </form>
         </div>
       </div>
