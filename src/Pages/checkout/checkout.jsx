@@ -5,14 +5,14 @@ import axios from 'axios';
 import { UserContext } from "../../UserContext.jsx";
 import { CartContext } from "../../CartContext.jsx";
 import { useOrder } from '../../OrderContext.jsx';
-import { useRazorpay, RazorpayOrderOptions } from "react-razorpay";
+import PaymentComponent from "./PaymentComponent.jsx";
+
 
 export default function checkout () {
   const { userStatus, loading } = useContext(UserContext);
   const [products, setProducts] = useState([]);
   const { cart,addToCart,clearCart } = useContext(CartContext);
   const { placeOrder } = useOrder();
-  const { error, isLoading, Razorpay } = useRazorpay();
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
@@ -240,31 +240,6 @@ export default function checkout () {
 
   const shippingCost = 8.00; // Define the shipping cost
 
-  const handlePayment = () => {
-    const options = {
-      key: "YOUR_RAZORPAY_KEY",
-      amount: 50000, // Amount in paise
-      currency: "INR",
-      name: "Test Company",
-      description: "Test Transaction",
-      order_id: "order_9A33XWu170gUtm", // Generate order_id on server
-      handler: (response) => {
-        console.log(response);
-        alert("Payment Successful!");
-      },
-      prefill: {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        contact: "9999999999",
-      },
-      theme: {
-        color: "#F37254",
-      },
-    };
-
-    const razorpayInstance = new Razorpay(options);
-    razorpayInstance.open();
-  };
 
 
   return (
@@ -563,14 +538,7 @@ export default function checkout () {
             <button type='submit' className='bg-gray-900 mt-4 mb-8 px-6 py-3 rounded-md w-full font-medium text-white'>
               Place Order
             </button>
-            <div>
-      <h1>Payment Page</h1>
-      {isLoading && <p>Loading Razorpay...</p>}
-      {error && <p>Error loading Razorpay: {error}</p>}
-      <button onClick={handlePayment} disabled={isLoading}>
-        Pay Now
-      </button>
-    </div>
+            <PaymentComponent/>        
           </form>
         </div>
       </div>
