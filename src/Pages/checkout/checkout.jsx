@@ -151,11 +151,11 @@ export default function checkout () {
     if (isSubmitting) return;
 
     // Check for empty fields
-    const isFormIncomplete = Object.values(formData).some(value => value.trim() === '');
-    if (isFormIncomplete) {
-      setAllFieldsValue('All fields must be filled out.');
-      return;
-    }
+    // const isFormIncomplete = Object.values(formData).some(value => value.trim() === '');
+    // if (isFormIncomplete) {
+    //   setAllFieldsValue('All fields must be filled out.');
+    //   return;
+    // }
 
     // Check for validation errors
     if (emailError || mobileError || customerNameError || billingAddressError || billingStateError || billingZipError) {
@@ -167,11 +167,12 @@ export default function checkout () {
 
     const orderData = {
       customerDetails: formData,
-      products: cart.map(item => ({
+      products: products.map(item => ({
         slug: item.slug,
-        quantity: item.quantity,
+        quantity: item.cartquantity,
         price: item.price,
-        cart_id : item.cart_id
+        cart_id : item.cart_id,
+        pay_method:'cod'
       })),
       totalPrice: calculateSubtotal() + shippingCost,
       shippingPrice: shippingCost
@@ -502,7 +503,7 @@ export default function checkout () {
                 onChange={handleInputChange}
                 className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
               >
-                <option value="">Select State</option>
+                <option value="sdfds">Select State</option>
                 {states.map((state) => (
                   <option key={state.id} value={state.name}>{state.name}</option>
                 ))}
