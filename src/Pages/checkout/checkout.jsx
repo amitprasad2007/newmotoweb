@@ -6,6 +6,7 @@ import { UserContext } from "../../UserContext.jsx";
 import { CartContext } from "../../CartContext.jsx";
 import { useOrder } from '../../OrderContext.jsx';
 import PaymentComponent from "./PaymentComponent.jsx";
+import statesData from '../../data/states.json';
 
 
 export default function checkout () {
@@ -32,6 +33,7 @@ export default function checkout () {
   const [allfieldsvalue, setAllFieldsValue] = useState('');
   const [states, setStates] = useState([]);
   let isSubmitting = false;
+  const [paymentMethod, setPaymentMethod] = useState('Online');
 
   useEffect(() => {
     if (!loading) {
@@ -44,20 +46,7 @@ export default function checkout () {
   }, [loading, userStatus, navigate]);
 
   useEffect(() => {
-    const fetchStates = async () => {
-      try {
-        const response = await axios.get('https://restcountries.com/v3.1/name/india');
-        const states = response.data[0].subdivisions.map(sub => ({
-          id: sub.iso3166_2,
-          name: sub.name
-        }));
-        setStates(states);
-      } catch (error) {
-        console.error('Failed to fetch states', error);
-      }
-    };
-
-    fetchStates();
+    setStates(statesData);
   }, []);
 
   const sendCartData = async () => {
@@ -150,14 +139,6 @@ export default function checkout () {
     e.preventDefault();
     if (isSubmitting) return;
 
-    // Check for empty fields
-    // const isFormIncomplete = Object.values(formData).some(value => value.trim() === '');
-    // if (isFormIncomplete) {
-    //   setAllFieldsValue('All fields must be filled out.');
-    //   return;
-    // }
-
-    // Check for validation errors
     if (emailError || mobileError || customerNameError || billingAddressError || billingStateError || billingZipError) {
       console.warn('Form contains errors. Please fix them before submitting.');
       return;
@@ -241,7 +222,9 @@ export default function checkout () {
 
   const shippingCost = 8.00; // Define the shipping cost
 
-
+  const handlePaymentMethodChange = (method) => {
+    setPaymentMethod(method);
+  };
 
   return (
     <div className='bg-white text-left checkout'>
@@ -503,7 +486,7 @@ export default function checkout () {
                 onChange={handleInputChange}
                 className='focus:z-10 border-gray-200 shadow-sm px-4 py-3 border focus:border-blue-500 rounded-md focus:ring-blue-500 w-full text-sm outline-none'
               >
-                <option value="sdfds">Select State</option>
+                <option value="">Select State</option>
                 {states.map((state) => (
                   <option key={state.id} value={state.name}>{state.name}</option>
                 ))}
@@ -536,10 +519,34 @@ export default function checkout () {
               <p className='font-medium text-gray-900 text-sm'>Total</p>
               <p className='font-semibold text-2xl text-gray-900'>₹{(calculateSubtotal() + shippingCost).toFixed(2)}</p>
             </div>
-            <button type='submit' className='bg-gray-900 mt-4 mb-8 px-6 py-3 rounded-md w-full font-medium text-white'>
-              Place Order
-            </button>
-            <PaymentComponent/>        
+
+            <div className='mt-6'>
+              <label className='block mb-2 font-medium text-sm'>Select Payment Method</label>
+              <div className='flex space-x-4'>
+                <button
+                  type='button'
+                  className={`px-4 py-2 rounded-md ${paymentMethod === 'COD' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => handlePaymentMethodChange('COD')}
+                >
+                  Cash on Delivery
+                </button>
+                <button
+                  type='button'
+                  className={`px-4 py-2 rounded-md ${paymentMethod === 'Online' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
+                  onClick={() => handlePaymentMethodChange('Online')}
+                >
+                  Pay Now
+                </button>
+              </div>
+            </div>
+
+            {paymentMethod === 'COD' ? (
+              <button type='submit' className='bg-gray-900 mt-4 mb-8 px-6 py-3 rounded-md w-full font-medium text-white'>
+                Place Order
+              </button>
+            ) : (
+              <PaymentComponent />
+            )}
           </form>
         </div>
       </div>
