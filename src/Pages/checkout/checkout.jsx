@@ -33,7 +33,8 @@ export default function checkout () {
   const [allfieldsvalue, setAllFieldsValue] = useState('');
   const [states, setStates] = useState([]);
   let isSubmitting = false;
-  const [paymentMethod, setPaymentMethod] = useState('Online');
+  const [paymentMethod, setPaymentMethod] = useState('COD');
+  const [TotalPrice, setTotalPrice] = useState(0);
 
   useEffect(() => {
     if (!loading) {
@@ -153,7 +154,7 @@ export default function checkout () {
         quantity: item.cartquantity,
         price: item.price,
         cart_id : item.cart_id,
-        pay_method:'cod'
+        pay_method:paymentMethod
       })),
       totalPrice: calculateSubtotal() + shippingCost,
       shippingPrice: shippingCost
@@ -214,13 +215,16 @@ export default function checkout () {
     }
   };
 
-  const calculateSubtotal = () => {
-    return products.reduce((total, product) => {
-      return total + (product.price * (product.cartquantity || 1));
-    }, 0);
-  };
-
-  const shippingCost = 8.00; // Define the shipping cost
+  useEffect(() => {
+    const calculateSubtotal = () => {
+      return products.reduce((total, product) => {
+        return total + (product.price * (product.cartquantity || 1));
+      }, 0);
+    };
+    const shippingCost = 8.00;
+    setTotalPrice (calculateSubtotal ()+shippingCost);
+  }, [products]);
+  
 
   const handlePaymentMethodChange = (method) => {
     setPaymentMethod(method);
@@ -508,7 +512,7 @@ export default function checkout () {
             <div className='mt-6 py-2 border-t border-b'>
               <div className='flex justify-between items-center'>
                 <p className='font-medium text-gray-900 text-sm'>Subtotal</p>
-                <p className='font-semibold text-gray-900'>₹{calculateSubtotal().toFixed(2)}</p>
+                <p className='font-semibold text-gray-900'>₹{TotalPrice}</p>
               </div>
               <div className='flex justify-between items-center'>
                 <p className='font-medium text-gray-900 text-sm'>Shipping</p>
@@ -517,7 +521,7 @@ export default function checkout () {
             </div>
             <div className='flex justify-between items-center mt-6'>
               <p className='font-medium text-gray-900 text-sm'>Total</p>
-              <p className='font-semibold text-2xl text-gray-900'>₹{(calculateSubtotal() + shippingCost).toFixed(2)}</p>
+              <p className='font-semibold text-2xl text-gray-900'>₹{TotalPrice.toFixed(2)}</p>
             </div>
 
             <div className='mt-6'>
@@ -545,7 +549,7 @@ export default function checkout () {
                 Place Order
               </button>
             ) : (
-              <PaymentComponent />
+              <PaymentComponent TOTALAMT={TotalPrice}  />
             )}
           </form>
         </div>

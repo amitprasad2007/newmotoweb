@@ -5,52 +5,42 @@ import axios from "axios";
 const RAZOR_KEY_ID = import.meta.env.VITE_RAZOR_KEY_ID;
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const PaymentComponent = () => {
+const PaymentComponent = (TOTALAMT) => {
   const [razororderid, setRazororderid] = useState('');
-
-  useEffect(() => {
-    const createOrder = async () => {
-      const authToken = localStorage.getItem('authToken');
-      const userId = localStorage.getItem('userId');
-
-      const userData = {userId};
-      try {
-        const response = await axios.post(`${apiUrl}/api/create-order`, userData, {
-          headers: { Authorization: `Bearer ${authToken}` },
-        });
-
-        if (response.status === 200) {
-          setRazororderid(response.data.orderIds.id)
-        } else {
-          console.error('Failed to send cart data', response);
-        }
-      } catch (error) {
-        console.error('Error sending cart data', error);
-      }
-    
-    };
-
-    createOrder();
-  }, []);
-
   const { error, isLoading, Razorpay } = useRazorpay();
   const handlePayment = async () => {
+    const authToken = localStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId');
+    const cartdata = {'TOTALAMT': TOTALAMT.TOTALAMT};
+
+    const userData = { userId, cartdata };
+    const response = await axios.post(`${apiUrl}/api/create-order`, userData, {
+      headers: { Authorization: `Bearer ${authToken}` },
+    });
+    setRazororderid(response.data.orderIds.id);
+
+    // Wait until razororderid is set
+    if (!response.data.orderIds.id) {
+      console.error('Order ID not received');
+      return; // Exit if order ID is not set
+    }
+
     const options = {
       key: RAZOR_KEY_ID,
       amount: 50000, // Amount in paise
       currency: "INR",
       name: "Test Company",
       description: "Test Transaction",
-      order_id: razororderid,
+      order_id: response.data.orderIds.id, // Use the fetched order ID directly
       handler: async (response) => {
         const authToken = localStorage.getItem('authToken');
         const userId = localStorage.getItem('userId');
-        const userData = {userId,response};
+        const userData = { userId, response };
         const orderResponse = await axios.post(`${apiUrl}/api/paychecksave`, userData, {
           headers: { Authorization: `Bearer ${authToken}` },
         });
         if (orderResponse.status === 200) {
-          console(orderResponse)
+          console(orderResponse);
         } else {
           console.error('Failed to send cart data', orderResponse);
         }
