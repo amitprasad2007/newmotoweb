@@ -5,7 +5,9 @@ import axios from "axios";
 const RAZOR_KEY_ID = import.meta.env.VITE_RAZOR_KEY_ID;
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const PaymentComponent = (TOTALAMT,formData ,products) => {
+const PaymentComponent = ({ TOTALAMT, formData, products }) => {
+  console.log('Received formData in PaymentComponent:', formData);
+
   const [razororderid, setRazororderid] = useState('');
   const { error, isLoading, Razorpay } = useRazorpay();
   const handlePayment = async () => {
@@ -27,7 +29,7 @@ const PaymentComponent = (TOTALAMT,formData ,products) => {
       key: RAZOR_KEY_ID,
       amount: TOTALAMT.TOTALAMT, // Amount in paise
       currency: "INR",
-      name: formData.formData.customername,
+      name: formData.customername,
       description: "Product Price",
       order_id: response.data.orderIds.id, // Use the fetched order ID directly
       handler: async (response) => {
@@ -44,9 +46,9 @@ const PaymentComponent = (TOTALAMT,formData ,products) => {
         }
       },
       prefill: {
-        name: formData.formData.customername,
-        email: formData.formData.email,
-        contact: formData.formData.mobile,
+        name: formData.customername,
+        email: formData.email,
+        contact: formData.mobile,
       },
       theme: {
         color: "#F37254",

@@ -17,12 +17,12 @@ export default function checkout () {
   const apiUrl = import.meta.env.VITE_API_URL;
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
+    customername: '',
     email: '',
-    customername: '',    
+    mobile: '',
     billingAddress: '',
     billingstate: '',
     billingzip: '',
-    mobile: ''
   });
   const [emailError, setEmailError] = useState('');
   const [mobileError, setMobileError] = useState('');
@@ -35,7 +35,7 @@ export default function checkout () {
   let isSubmitting = false;
   const [paymentMethod, setPaymentMethod] = useState('COD');
   const [TotalPrice, setTotalPrice] = useState(0);
-
+  const shippingCost = 8.00;
   useEffect(() => {
     if (!loading) {
       if (!userStatus) {
@@ -77,6 +77,7 @@ export default function checkout () {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    console.log('Updated formData:', { ...formData, [name]: value });
 
     if (name === 'email') {
       const emailPattern = /^[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}$/;
@@ -221,7 +222,7 @@ export default function checkout () {
         return total + (product.price * (product.cartquantity || 1));
       }, 0);
     };
-    const shippingCost = 8.00;
+   
     setTotalPrice (calculateSubtotal ()+shippingCost);
   }, [products]);
   
@@ -549,8 +550,14 @@ export default function checkout () {
                 Place Order
               </button>
             ) : (
-              <PaymentComponent TOTALAMT={TotalPrice} formData={formData} products={products}/>
+              formData.email && formData.customername && formData.mobile && formData.billingAddress ? (
+                <PaymentComponent TOTALAMT={TotalPrice} formData={formData} products={products}/>
+              ) : (
+                <p className='text-red-500'>Please fill in all required fields before proceeding to payment.</p>
+              )
             )}
+
+            console.log('FormData before PaymentComponent:', formData);
           </form>
         </div>
       </div>
