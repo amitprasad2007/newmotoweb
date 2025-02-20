@@ -5,32 +5,30 @@ import axios from "axios";
 const RAZOR_KEY_ID = import.meta.env.VITE_RAZOR_KEY_ID;
 const apiUrl = import.meta.env.VITE_API_URL;
 
-const PaymentComponent = (TOTALAMT) => {
+const PaymentComponent = (TOTALAMT,formData ,products) => {
   const [razororderid, setRazororderid] = useState('');
   const { error, isLoading, Razorpay } = useRazorpay();
   const handlePayment = async () => {
     const authToken = localStorage.getItem('authToken');
     const userId = localStorage.getItem('userId');
-    const cartdata = {'TOTALAMT': TOTALAMT.TOTALAMT};
+    const cartdata = {'TOTALAMT': TOTALAMT.TOTALAMT,formData:formData,userId,products};
 
     const userData = { userId, cartdata };
-    const response = await axios.post(`${apiUrl}/api/create-order`, userData, {
+    const response = await axios.post(`${apiUrl}/api/create-order`, cartdata, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     setRazororderid(response.data.orderIds.id);
-
-    // Wait until razororderid is set
     if (!response.data.orderIds.id) {
       console.error('Order ID not received');
       return; // Exit if order ID is not set
     }
-
+    die;
     const options = {
       key: RAZOR_KEY_ID,
-      amount: 50000, // Amount in paise
+      amount: TOTALAMT.TOTALAMT, // Amount in paise
       currency: "INR",
-      name: "Test Company",
-      description: "Test Transaction",
+      name: formData.formData.customername,
+      description: "Product Price",
       order_id: response.data.orderIds.id, // Use the fetched order ID directly
       handler: async (response) => {
         const authToken = localStorage.getItem('authToken');
@@ -46,9 +44,9 @@ const PaymentComponent = (TOTALAMT) => {
         }
       },
       prefill: {
-        name: "John Doe",
-        email: "john.doe@example.com",
-        contact: "9999999999",
+        name: formData.formData.customername,
+        email: formData.formData.email,
+        contact: formData.formData.mobile,
       },
       theme: {
         color: "#F37254",

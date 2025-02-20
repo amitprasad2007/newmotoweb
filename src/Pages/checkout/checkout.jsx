@@ -156,7 +156,7 @@ export default function checkout () {
         cart_id : item.cart_id,
         pay_method:paymentMethod
       })),
-      totalPrice: calculateSubtotal() + shippingCost,
+      totalPrice: TotalPrice + shippingCost,
       shippingPrice: shippingCost
     };
 
@@ -549,7 +549,7 @@ export default function checkout () {
                 Place Order
               </button>
             ) : (
-              <PaymentComponent TOTALAMT={TotalPrice}  />
+              <PaymentComponent TOTALAMT={TotalPrice} formData={formData} products={products}/>
             )}
           </form>
         </div>
