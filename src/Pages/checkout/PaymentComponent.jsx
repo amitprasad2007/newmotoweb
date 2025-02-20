@@ -16,7 +16,7 @@ const PaymentComponent = ({ TOTALAMT, formData, products }) => {
     const cartdata = {'TOTALAMT': TOTALAMT.TOTALAMT,formData:formData,userId,products};
 
     const userData = { userId, cartdata };
-    const response = await axios.post(`${apiUrl}/api/create-order`, cartdata, {
+    const response = await axios.post(`${apiUrl}/api/create-order`, userData, {
       headers: { Authorization: `Bearer ${authToken}` },
     });
     setRazororderid(response.data.orderIds.id);
