@@ -13,7 +13,7 @@ const PaymentComponent = ({ TOTALAMT, formData, products }) => {
   const handlePayment = async () => {
     const authToken = localStorage.getItem('authToken');
     const userId = localStorage.getItem('userId');
-    const cartdata = {'TOTALAMT': TOTALAMT.TOTALAMT,formData:formData,userId,products};
+    const cartdata = {TOTALAMT,formData:formData,userId,products};
 
     const userData = { userId, cartdata };
     const response = await axios.post(`${apiUrl}/api/create-order`, userData, {

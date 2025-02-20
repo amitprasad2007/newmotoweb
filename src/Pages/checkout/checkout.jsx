@@ -556,8 +556,6 @@ export default function checkout () {
                 <p className='text-red-500'>Please fill in all required fields before proceeding to payment.</p>
               )
             )}
-
-            console.log('FormData before PaymentComponent:', formData);
           </form>
         </div>
       </div>
