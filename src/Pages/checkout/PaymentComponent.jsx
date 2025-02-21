@@ -6,7 +6,6 @@ const RAZOR_KEY_ID = import.meta.env.VITE_RAZOR_KEY_ID;
 const apiUrl = import.meta.env.VITE_API_URL;
 
 const PaymentComponent = ({ TOTALAMT, formData, products }) => {
-  console.log('Received formData in PaymentComponent:', formData);
 
   const [razororderid, setRazororderid] = useState('');
   const { error, isLoading, Razorpay } = useRazorpay();
